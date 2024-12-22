@@ -8,5 +8,5 @@ apt update && apt install git -y && git clone --depth 1 https://github.com/mina9
 cd wpdo2 && bash install.sh
 
 # Add Sites
-bash vhost.sh
+vhost.sh
 ```

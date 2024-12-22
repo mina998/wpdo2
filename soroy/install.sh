@@ -64,3 +64,7 @@ else
     echoRR "docker-compose Install Failed."
     exit 1
 fi
+
+# 创建软链接
+chmod +x soroy/vhost.sh
+ln -s soroy/vhost.sh /usr/local/bin/vhost.sh

@@ -21,7 +21,7 @@ apt update
 
 # 安装依赖包
 echoSB "Install Necessary Packages."
-apt install -y apt-transport-https ca-certificates curl gnupg lsb-release unzip gawk certbot zstd
+apt install -y apt-transport-https ca-certificates curl gnupg lsb-release unzip gawk certbot zstd pv
 
 # 添加 Docker 官方 GPG 密钥 和 仓库
 echoSB "Add Docker Official GPG Key and Repository."

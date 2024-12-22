@@ -66,6 +66,7 @@ else
 fi
 
 # 创建软链接
-LINK_PATH=$(pwd)/vhost.sh
+SYMLINK_PATH=$(readlink -f "$0")
+LINK_PATH=$(dirname "$SYMLINK_PATH")/vhost.sh
 chmod +x $LINK_PATH
 ln -s $LINK_PATH /usr/local/bin/vhost.sh

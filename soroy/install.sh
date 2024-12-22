@@ -64,10 +64,3 @@ else
     echoRR "docker-compose Install Failed."
     exit 1
 fi
-
-# 验证安装
-# echoBC "验证安装..."
-# docker --version
-# docker-compose --version
-
-# echoRC "Docker 安装完成"

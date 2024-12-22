@@ -1,6 +1,8 @@
 #!/bin/bash
+# 获取当前脚本的软链接路径
+SYMLINK_PATH=$(readlink -f "$0")
 # 当前目录
-SOROY_DIR=$(dirname "$0")
+SOROY_DIR=$(dirname "$SYMLINK_PATH")
 SOROY_DIR=$(realpath "$SOROY_DIR")
 # 加载颜色
 source $SOROY_DIR/colors.sh
@@ -268,6 +270,38 @@ function site_delete {
     echoCC "站点删除成功"
 }
 
+#
+site_backup {
+    # 判断是否存在站点
+    if ! site_exists; then
+        return 1
+    fi
+    # 获取站点虚拟主机名
+    site_hostname_get
+    # 站点目录根目录
+    local site_root_path=$VHOSTS_DIR/$SITE_HOSTNAME
+    # 打包文件路径
+    local $backup_file=$site_root_path/backup/${SITE_HOSTNAME}.$(date +"%Y%m%d_%H%M%S").tar.zstd
+    # WordPress 站点程序目录
+    local $wordpress=$site_root_path/wordpress
+    # 创建压缩备份
+    tar -I zstd -cf "$backup_file" -C "$wordpress" .
+    # 检查备份是否成功
+    if [[ $? -eq 0 ]]; then
+        echoCC "Backup Successful: $backup_file"
+    else
+        echoRC "Backup Failed."
+    fi
+}
+
+#
+site_restore {
+}
+
+#
+fix_site_file_permissions {
+}
+
 # 站点命令
 function site_cmd {
     # 循环
@@ -277,6 +311,7 @@ function site_cmd {
         echo -e "${SB}2${ED}.${LG}追加域名${ED}"
         echo -e "${SB}3${ED}.${LG}安装SSL证书${ED}"
         echo -e "${SB}4${ED}.${LG}删除站点${ED}"
+        echo -e "${SB}5${ED}.${LG}备份站点${ED}"
         echo -e "${SB}e${ED}.${LG}退出${ED}"
         echo -ne "${BC}请选择: ${ED}"
         read -a num2
@@ -285,6 +320,9 @@ function site_cmd {
             2) site_append_domain ;;
             3) site_install_ssl ;;
             4) site_delete ;;
+            5) site_backup ;;
+            6) site_restore ;;
+            7) fix_site_file_permissions ;;
             e) break ;;
             *) echoCC '输入有误.'
         esac

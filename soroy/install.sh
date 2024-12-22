@@ -1,5 +1,4 @@
 #! /bin/bash
-
 source ./colors.sh
 
 # 检查是否为 root 用户
@@ -13,6 +12,12 @@ if [ ! -f ../.env ]; then
     # 复制 .env.sample 文件为 .env
     cp ../env.sample ../.env
 fi
+
+# 创建软链接
+SYMLINK_PATH=$(readlink -f "$0")
+LINK_PATH=$(dirname "$SYMLINK_PATH")/vhost.sh
+chmod +x $LINK_PATH
+ln -s $LINK_PATH /usr/local/bin/vhost.sh
 
 # 卸载旧版本 Docker（如果存在）
 echoSB "Remove Old Version Docker."
@@ -65,8 +70,3 @@ else
     exit 1
 fi
 
-# 创建软链接
-SYMLINK_PATH=$(readlink -f "$0")
-LINK_PATH=$(dirname "$SYMLINK_PATH")/vhost.sh
-chmod +x $LINK_PATH
-ln -s $LINK_PATH /usr/local/bin/vhost.sh

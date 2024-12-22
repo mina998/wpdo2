@@ -60,7 +60,8 @@ chmod +x /usr/local/bin/docker-compose
 if [ -x "$(command -v docker-compose)" ]; then
     cd ..
     echoSB "Start Docker Compose Service."
-    docker-compose up -d
+    # docker-compose up -d
+    docker-compose -f $DNMP_DIR/docker-compose.yml up -d
 else
     echoRR "docker-compose Install Failed."
     exit 1

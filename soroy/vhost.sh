@@ -257,6 +257,8 @@ function site_delete {
         # 删除站点目录
         rm -rf "$site_dir"
     fi
+    # 删除站点数据库
+    docker exec -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql mysql -uroot -e "DROP DATABASE \`sql_$(echo "$SITE_HOSTNAME" | tr '.' '_' | tr '-' '_')\`;"
     # 删除站点配置文件
     rm -rf $VHOSTS_CONF_DIR/$SITE_HOSTNAME.conf
     # 判断证书是否存在
@@ -270,8 +272,8 @@ function site_delete {
     echoCC "站点删除成功"
 }
 
-#
-site_backup {
+# 备份站点
+function site_backup {
     # 判断是否存在站点
     if ! site_exists; then
         return 1
@@ -280,26 +282,119 @@ site_backup {
     site_hostname_get
     # 站点目录根目录
     local site_root_path=$VHOSTS_DIR/$SITE_HOSTNAME
+    # 备份存储根目录
+    local backup_storage_root=$site_root_path/backup
     # 打包文件路径
-    local $backup_file=$site_root_path/backup/${SITE_HOSTNAME}.$(date +"%Y%m%d_%H%M%S").tar.zstd
+    local backup_file="$backup_storage_root/${SITE_HOSTNAME}.$(date +"%Y%m%d_%H%M%S").tar.zstd"
     # WordPress 站点程序目录
-    local $wordpress=$site_root_path/wordpress
+    local wordpress="$site_root_path/wordpress"
+    # 定义数据库文件导出路径
+    local database_backup_file="$wordpress/db.sql"
+    # 数据库名
+    local database_name="sql_$(echo "$SITE_HOSTNAME" | tr '.' '_' | tr '-' '_')"
+    # 导出数据库
+    docker exec -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql mysqldump -uroot $database_name > "$database_backup_file"
     # 创建压缩备份
     tar -I zstd -cf "$backup_file" -C "$wordpress" .
     # 检查备份是否成功
     if [[ $? -eq 0 ]]; then
-        echoCC "Backup Successful: $backup_file"
+        echoSB "备份文件列表, 总容量: $(du -sh $backup_storage_root)"
+        # 查看备份
+        ls -ghGA $backup_storage_root | awk 'BEGIN{OFS="\t"} NR > 1 {print $3, $7}'
     else
-        echoRC "Backup Failed."
+        echoRC "备份失败."
     fi
 }
 
-#
-site_restore {
+# 恢复站点
+function site_restore {
+    # 判断是否存在站点
+    if ! site_exists; then
+        return 1
+    fi
+    # 获取站点虚拟主机名
+    site_hostname_get
+    # 站点目录根目录
+    local site_root_path="$VHOSTS_DIR/$SITE_HOSTNAME"
+    # 备份存储根目录
+    local backup_storage_root="$site_root_path/backup"
+    # 定义临时文件夹
+    local temp_dir=$site_root_path/temp
+    # 数据库名
+    local database_name="sql_$(echo "$SITE_HOSTNAME" | tr '.' '_' | tr '-' '_')"
+    # 判断临时文件夹是否存在
+    if [ ! -d "$temp_dir" ]; then
+        mkdir -p "$temp_dir"
+    else
+        rm -rf "$temp_dir" && mkdir -p "$temp_dir"
+    fi
+    # 查看备份
+    echoSB "备份文件列表, 总容量: $(du -sh $backup_storage_root)"
+    # 查看备份 ls -lrthgG
+    ls -ghGA $backup_storage_root | awk 'BEGIN{OFS="\t"} NR > 1 {print $3, $7}'
+    # 接收用户输入
+    echo -ne "$BC请输入要还原的文件名: $ED"
+    read -a site_backup_file
+    # 检查输入是否为空
+    if [ -z "$site_backup_file" ]; then
+        echoCC "输入不能为空"
+        return $?
+    fi
+    # 检测文件格式
+    if [[ ! $site_backup_file =~ .*\.tar\.zstd$ ]]; then
+        echoCC "[$site_backup_file]非指定的压缩格式"
+        return $?
+    fi
+    # 检查文件是否存在
+    local site_backup_file_path=$backup_storage_root/$site_backup_file
+    if [ ! -f "$site_backup_file_path" ]; then
+        echoCC "$site_backup_file_path指定文件不存在"
+        return $?
+    fi
+    # 解压文件
+    tar -I zstd -xf "$site_backup_file_path" -C "$temp_dir"
+    if [ $? -eq 0 ]; then
+        # 恢复数据库
+        echo -e "${SB}恢复数据库${ED}"
+        local database_backup_file="$temp_dir/db.sql"
+        # 使用pv显示进度
+        pv $database_backup_file | docker exec -i -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql mysql -uroot $database_name
+        if [ $? -eq 0 ]; then
+            # 删除文件
+            rm -rf $database_backup_file
+            rm -rf $site_root_path/wordpress
+            # 移动文件
+            mv $temp_dir $site_root_path/wordpress
+            # 修改文件权限
+            docker exec php82 chown -R www-data:www-data /www/$SITE_HOSTNAME/wordpress
+            # 输出成功
+            echoCC "站点恢复成功"
+        else
+            echoRC "数据库恢复失败"
+        fi
+    else
+        echoRC "站点恢复失败"
+    fi
 }
 
-#
-fix_site_file_permissions {
+# 修复站点文件权限
+function fix_site_file_permissions {
+    # 判断是否存在站点
+    if ! site_exists; then
+        return 1
+    fi
+    # 获取站点虚拟主机名
+    site_hostname_get
+    # 修改文件权限
+    docker exec php82 chown -R www-data:www-data /www/$SITE_HOSTNAME/wordpress
+    if [ $? -eq 0 ]; then
+        # 输出成功
+        echoCC "站点文件权限修复成功"
+    else
+        echoRC "站点文件权限修复失败"
+    fi
+    # 重新加载nginx配置
+    docker exec nginx nginx -s reload
 }
 
 # 站点命令
@@ -312,6 +407,8 @@ function site_cmd {
         echo -e "${SB}3${ED}.${LG}安装SSL证书${ED}"
         echo -e "${SB}4${ED}.${LG}删除站点${ED}"
         echo -e "${SB}5${ED}.${LG}备份站点${ED}"
+        echo -e "${SB}6${ED}.${LG}恢复站点${ED}"
+        echo -e "${SB}7${ED}.${LG}修复站点文件权限${ED}"
         echo -e "${SB}e${ED}.${LG}退出${ED}"
         echo -ne "${BC}请选择: ${ED}"
         read -a num2

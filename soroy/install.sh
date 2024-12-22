@@ -56,22 +56,23 @@ echoSB "Install Docker Compose."
 curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 
-# 判断docker-compose 命令是否存在
-if [ -x "$(command -v docker-compose)" ]; then
-    cd ..
-    echoSB "Start Docker Compose Service."
-    # docker-compose up -d
-    docker-compose -f $DNMP_DIR/docker-compose.yml up -d
-else
-    echoRR "docker-compose Install Failed."
-    exit 1
-fi
-
 # 判断 .env 文件是否存在
 if [ ! -f $DNMP_DIR/.env ]; then
     # 复制 .env.sample 文件为 .env
     cp $DNMP_DIR/env.sample $DNMP_DIR/.env
 fi
+
+# 判断docker-compose 命令是否存在
+if [ -x "$(command -v docker-compose)" ]; then
+    cd ..
+    echoSB "Start Docker Compose Service."
+    cd $DNMP_DIR
+    docker-compose up -d
+else
+    echoRR "docker-compose Install Failed."
+    exit 1
+fi
+
 # 创建软链接
 chmod +x $SOROY_DIR/vhost.sh
 ln -s $SOROY_DIR/vhost.sh /usr/local/bin/vhost.sh

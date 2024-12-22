@@ -1,23 +1,19 @@
 #! /bin/bash
-source ./colors.sh
 
+# 获取当前脚本的软链接路径
+SYMLINK_PATH=$(readlink -f "$0")
+# 当前目录
+SOROY_DIR=$(dirname "$SYMLINK_PATH")
+SOROY_DIR=$(realpath "$SOROY_DIR")
+# 加载颜色
+source $SOROY_DIR/colors.sh
+# DNMP目录
+DNMP_DIR=$(realpath "$SOROY_DIR/..")
 # 检查是否为 root 用户
 if [ "$EUID" -ne 0 ]; then 
     echoRR "请使用 root 权限运行此脚本"
     exit 1
 fi
-
-# 判断 .env 文件是否存在
-if [ ! -f ../.env ]; then
-    # 复制 .env.sample 文件为 .env
-    cp ../env.sample ../.env
-fi
-
-# 创建软链接
-SYMLINK_PATH=$(readlink -f "$0")
-LINK_PATH=$(dirname "$SYMLINK_PATH")/vhost.sh
-chmod +x $LINK_PATH
-ln -s $LINK_PATH /usr/local/bin/vhost.sh
 
 # 卸载旧版本 Docker（如果存在）
 echoSB "Remove Old Version Docker."
@@ -70,3 +66,11 @@ else
     exit 1
 fi
 
+# 判断 .env 文件是否存在
+if [ ! -f $DNMP_DIR/.env ]; then
+    # 复制 .env.sample 文件为 .env
+    cp $DNMP_DIR/env.sample $DNMP_DIR/.env
+fi
+# 创建软链接
+chmod +x $SOROY_DIR/vhost.sh
+ln -s $SOROY_DIR/vhost.sh /usr/local/bin/vhost.sh

@@ -66,5 +66,6 @@ else
 fi
 
 # 创建软链接
-chmod +x soroy/vhost.sh
-ln -s soroy/vhost.sh /usr/local/bin/vhost.sh
+LINK_PATH=$(pwd)/vhost.sh
+chmod +x $LINK_PATH
+ln -s $LINK_PATH /usr/local/bin/vhost.sh

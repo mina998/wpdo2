@@ -1,0 +1,82 @@
+services:
+  nginx:
+    build:
+      context: ./services/nginx
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - ./services/nginx/ssl:/ssl
+      - ./www:/www
+      - ./services/nginx/conf.d:/etc/nginx/conf.d
+      - ./services/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./services/nginx/fastcgi-php.conf:/etc/nginx/fastcgi-php.conf
+      - ./services/nginx/fastcgi_params:/etc/nginx/fastcgi_params
+      - ./logs/nginx:/var/log/nginx
+    restart: always
+    networks:
+      - default
+
+  php82:
+    build:
+      context: ./services/php82
+      args:
+        DEBIAN_MIRROR_DOMAIN: deb.debian.org
+        PHP_EXTENSIONS: pdo_mysql mysqli gd curl opcache sockets
+        TZ: ${TZ}
+    container_name: php82
+    expose:
+      - 9501
+    volumes:
+      - ./www:/www
+      - ./services/php82/php.ini:/usr/local/etc/php/php.ini
+      - ./services/php82/php-fpm.conf:/usr/local/etc/php-fpm.d/www.conf
+      - ./logs/php82:/var/log/php
+      - ./data/composer:/tmp/composer
+    restart: always
+    cap_add:
+      - SYS_PTRACE
+    networks:
+      - default
+
+  mysql:
+    image: mysql:8.0.34
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./services/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf:ro
+      - ./data/mysql:/var/lib/mysql/:rw
+      - ./logs/mysql:/var/log/mysql/:rw
+    restart: always
+    networks:
+      - default
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_HOST: "%"
+      TZ: ${TZ}
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    ports:
+      - "8081:80"
+    volumes:
+      - ./services/phpmyadmin/config.user.inc.php:/etc/phpmyadmin/config.user.inc.php:ro
+      - ./services/phpmyadmin/php-phpmyadmin.ini:/usr/local/etc/php/conf.d/php-phpmyadmin.ini:ro
+    networks:
+      - default
+    environment:
+      - PMA_HOST=mysql
+      - PMA_PORT=3306
+      - TZ=${TZ}
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.0.0/24

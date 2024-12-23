@@ -7,6 +7,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
+      - /dev/shm/nginx-cache/wp:/dev/shm/nginx-cache/wp
       - /etc/letsencrypt:/etc/letsencrypt
       - ./services/nginx/ssl:/ssl
       - ./www:/www

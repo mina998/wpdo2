@@ -14,6 +14,26 @@ character-set-server    = utf8mb4
 collation-server        = utf8mb4_unicode_ci
 init_connect            = 'SET NAMES utf8mb4'
 
+# 性能优化设置
+innodb_buffer_pool_size = 1G
+innodb_log_file_size = 256M
+innodb_log_buffer_size = 16M
+innodb_flush_log_at_trx_commit = 2
+innodb_flush_method = O_DIRECT
+innodb_file_per_table = 1
+
+max_connections = 1000
+thread_cache_size = 16
+query_cache_type = 1
+query_cache_size = 32M
+query_cache_limit = 2M
+
+key_buffer_size = 256M
+sort_buffer_size = 4M
+read_buffer_size = 4M
+read_rnd_buffer_size = 8M
+join_buffer_size = 4M
+
 disable-log-bin
 skip-character-set-client-handshake
 explicit_defaults_for_timestamp

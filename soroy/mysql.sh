@@ -4,8 +4,6 @@ SYMLINK_PATH=$(readlink -f "$0")
 # 当前目录
 SOROY_DIR=$(dirname "$SYMLINK_PATH")
 MYSQL_CONF=$(realpath "$SOROY_DIR/../services/mysql/mysql.cnf")
-echo "MySQL配置文件: $MYSQL_CONF"
-
 # 获取系统信息
 TOTAL_MEM=$(free -m | awk '/^Mem:/{print $2}')  # 总内存(MB)
 CPU_CORES=$(nproc)  # CPU核心数

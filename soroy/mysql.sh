@@ -9,11 +9,11 @@ TOTAL_MEM=$(free -m | awk '/^Mem:/{print $2}')  # 总内存(MB)
 CPU_CORES=$(nproc)  # CPU核心数
 # 计算配置参数
 # 最大连接数 2-4G: 100 - 200  4-8G: 200 - 500  8G以上: 500 - 1000  16G以上: 1000 - 2000
-max_connections=$(echo "${TOTAL_MEM} / 1024 * 55" | bc | cut -d. -f1)
+max_connections=$(echo "${TOTAL_MEM} * 55 / 1024" | bc)
 # 缓存表的元数据 
-table_definition_cache=$(echo "${TOTAL_MEM} * 1024 / 10000" | bc | cut -d. -f1)
+table_definition_cache=$(echo "${TOTAL_MEM} * 1024 / 10000" | bc)
 # MyISAM引擎排序缓存
-myisam_sort_buffer_size=$(echo "${TOTAL_MEM} / 1024 * 7" | bc | cut -d. -f1)M
+myisam_sort_buffer_size=$(echo "${TOTAL_MEM} * 7 / 1024" | bc)M
 # MyISAM索引时能够使用的临时文件的最大值 如果磁盘空间有限，可以设置更小
 myisam_max_sort_file_size=$(echo "${TOTAL_MEM} * 0.3" | bc | cut -d. -f1)M
 

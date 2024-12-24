@@ -87,8 +87,8 @@ interactive_timeout = 600
 
 # 缓冲区设置
 key_buffer_size = ${key_buffer_size}
-sort_buffer_size = 8M
-read_buffer_size = 8M
+sort_buffer_size = 2M
+read_buffer_size = 2M
 read_rnd_buffer_size = 8M
 join_buffer_size = 8M
 table_open_cache = ${table_open_cache}
@@ -107,6 +107,10 @@ innodb_log_file_size = 384M
 innodb_log_files_in_group = 2
 innodb_max_dirty_pages_pct = 90
 innodb_lock_wait_timeout = 120
+
+myisam_sort_buffer_size = ${myisam_sort_buffer_size}
+# MyISAM索引时能够使用的临时文件的最大值 如果磁盘空间有限，可以设置更小
+# myisam_max_sort_file_size = ${myisam_max_sort_file_size}
 
 # 慢查询日志
 slow_query_log = 1
@@ -132,10 +136,9 @@ quick
 max_allowed_packet = ${max_allowed_packet}
 
 [myisamchk]
-myisam_sort_buffer_size = ${myisam_sort_buffer_size}
-# MyISAM索引时能够使用的临时文件的最大值 如果磁盘空间有限，可以设置更小
-# myisam_max_sort_file_size = ${myisam_max_sort_file_size}
-read_buffer = 3M
-write_buffer = 3M
+key_buffer_size = ${key_buffer_size}
+sort_buffer_size = 2M
+read_buffer = 2M
+write_buffer = 2M
 EOF
 

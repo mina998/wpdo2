@@ -6,7 +6,7 @@ SYMLINK_PATH=$(readlink -f "$0")
 SOROY_DIR=$(dirname "$SYMLINK_PATH")
 SOROY_DIR=$(realpath "$SOROY_DIR")
 # 加载mysql配置
-bash $SOROY_DIR/mysql.sh
+#bash $SOROY_DIR/mysql.sh
 # 加载颜色
 source $SOROY_DIR/colors.sh
 # DNMP目录

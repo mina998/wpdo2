@@ -10,11 +10,13 @@ echo "MySQL配置文件: $MYSQL_CONF"
 TOTAL_MEM=$(free -m | awk '/^Mem:/{print $2}')  # 总内存(MB)
 CPU_CORES=$(nproc)  # CPU核心数
 # 计算配置参数
+# 最大连接数 2-4G: 100 - 200  4-8G: 200 - 500  8G以上: 500 - 1000  16G以上: 1000 - 2000
 max_connections=$(echo "${TOTAL_MEM}/1024*55" | bc | cut -d. -f1)
-max_allowed_packet=$(echo "${TOTAL_MEM} * 0.7" | bc | cut -d. -f1)M
-table_definition_cache=$(echo "${TOTAL_MEM} * 0.2 * 0.9" | bc | cut -d. -f1)
-
+# 缓存表的元数据 
+table_definition_cache=$(echo "${TOTAL_MEM} * 1024 / 10000" | bc | cut -d. -f1)
+# MyISAM引擎排序缓存
 myisam_sort_buffer_size=$(echo "${TOTAL_MEM}/1024*7" | bc | cut -d. -f1)M
+# MyISAM索引时能够使用的临时文件的最大值 如果磁盘空间有限，可以设置更小
 myisam_max_sort_file_size=$(echo "${TOTAL_MEM} * 0.3" | bc | cut -d. -f1)M
 
 # 内存小于 1.5G 退出 使用默认配置
@@ -27,7 +29,8 @@ elif [ ${TOTAL_MEM} -gt 1500 -a ${TOTAL_MEM} -le 2500 ]; then
     innodb_buffer_pool_size=128M
     tmp_table_size=32M
     table_open_cache=256
-    max_allowed_packet=8M
+    # 最大包大小 2-4G: 16M - 64M  4-8G: 64M - 128M 8G以上: 128M - 256M  16G以上: 256M - 512M
+    max_allowed_packet=12M
 # 内存小于 3.5G 配置
 elif [ ${TOTAL_MEM} -gt 2500 -a ${TOTAL_MEM} -le 3500 ]; then
     thread_cache_size=32
@@ -130,7 +133,8 @@ max_allowed_packet = ${max_allowed_packet}
 
 [myisamchk]
 myisam_sort_buffer_size = ${myisam_sort_buffer_size}
-myisam_max_sort_file_size = ${myisam_max_sort_file_size}
+# MyISAM索引时能够使用的临时文件的最大值 如果磁盘空间有限，可以设置更小
+# myisam_max_sort_file_size = ${myisam_max_sort_file_size}
 read_buffer = 3M
 write_buffer = 3M
 EOF

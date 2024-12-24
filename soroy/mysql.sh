@@ -10,7 +10,7 @@ echo "MySQL配置文件: $MYSQL_CONF"
 TOTAL_MEM=$(free -m | awk '/^Mem:/{print $2}')  # 总内存(MB)
 CPU_CORES=$(nproc)  # CPU核心数
 # 计算配置参数
-max_connections=$(echo "${TOTAL_MEM}/3" | bc | cut -d. -f1)
+max_connections=$(echo "${TOTAL_MEM}/1024*55" | bc | cut -d. -f1)
 max_allowed_packet=$(echo "${TOTAL_MEM} * 0.7" | bc | cut -d. -f1)M
 table_definition_cache=$(echo "${TOTAL_MEM} * 0.2 * 0.9" | bc | cut -d. -f1)
 

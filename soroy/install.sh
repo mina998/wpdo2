@@ -5,6 +5,8 @@ SYMLINK_PATH=$(readlink -f "$0")
 # 当前目录
 SOROY_DIR=$(dirname "$SYMLINK_PATH")
 SOROY_DIR=$(realpath "$SOROY_DIR")
+# 加载mysql配置
+bash $SOROY_DIR/mysql.sh
 # 加载颜色
 source $SOROY_DIR/colors.sh
 # DNMP目录
@@ -22,7 +24,7 @@ apt update
 
 # 安装依赖包
 echoSB "Install Necessary Packages."
-apt install -y apt-transport-https ca-certificates curl gnupg lsb-release unzip gawk certbot zstd pv ghostscript
+apt install -y apt-transport-https ca-certificates curl gnupg lsb-release unzip gawk certbot zstd pv ghostscript bc
 
 # 添加 Docker 官方 GPG 密钥 和 仓库
 echoSB "Add Docker Official GPG Key and Repository."

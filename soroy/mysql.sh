@@ -9,7 +9,7 @@ TOTAL_MEM=$(free -m | awk '/^Mem:/{print $2}')  # 总内存(MB)
 CPU_CORES=$(nproc)  # CPU核心数
 # 计算配置参数
 # 最大连接数 2-4G: 100 - 200  4-8G: 200 - 500  8G以上: 500 - 1000  16G以上: 1000 - 2000
-max_connections=$(echo "${TOTAL_MEM} * 55 / 1024" | bc)
+max_connections=$(echo "${TOTAL_MEM} * 65 / 1024" | bc)
 # 缓存表的元数据 
 table_definition_cache=$(echo "${TOTAL_MEM} * 1024 / 10000" | bc)
 # MyISAM引擎排序缓存
@@ -24,7 +24,7 @@ if [ ${TOTAL_MEM} -le 1500 ]; then
 elif [ ${TOTAL_MEM} -gt 1500 -a ${TOTAL_MEM} -le 2500 ]; then
     thread_cache_size=16
     key_buffer_size=16M
-    innodb_buffer_pool_size=128M
+    innodb_buffer_pool_size=256M
     tmp_table_size=32M
     table_open_cache=256
     # 最大包大小 2-4G: 16M - 64M  4-8G: 64M - 128M 8G以上: 128M - 256M  16G以上: 256M - 512M
@@ -100,7 +100,7 @@ innodb_log_buffer_size = 16M
 innodb_file_per_table = 1
 innodb_read_io_threads = ${CPU_CORES}
 innodb_write_io_threads = ${CPU_CORES}
-innodb_flush_log_at_trx_commit = 1
+innodb_flush_log_at_trx_commit = 2
 innodb_log_file_size = 384M
 innodb_log_files_in_group = 2
 innodb_max_dirty_pages_pct = 90
@@ -112,7 +112,7 @@ myisam_sort_buffer_size = ${myisam_sort_buffer_size}
 
 # 慢查询日志
 slow_query_log = 1
-long_query_time = 3
+long_query_time = 1
 slow-query-log-file = /var/log/mysql/mysql.slow.log
 log-error = /var/log/mysql/mysql.error.log
 

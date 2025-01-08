@@ -1,0 +1,7 @@
+!.gitignore
+.idea
+.DS_Store
+.git/
+nohup.out
+docker-compose.yml.*
+wwwroot/*

@@ -1,0 +1,70 @@
+# version: "3"
+services:
+  nginx:
+    # build:
+    #   context: ./nginx
+    image: skisscc/nginx:with-php
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8081:8081"
+    restart: always
+    volumes:
+      - ${NGINX_SSL_CERTIFICATE_DIR}:/${NGINX_SSL_CERTIFICATE_DIR}:ro
+      # nginx config
+      - ${NGINX_DIR}/nginx.conf:/usr/local/nginx/conf/nginx.conf
+      - ${LOG_DIR}/nginx:/usr/local/nginx/logs
+      # nginx vhosts config
+      - ${VHOSTS_CONF_DIR}:/usr/local/nginx/conf.d
+      # php config
+      - ${PHP83_DIR}/php.ini:/usr/local/etc/php/php.ini:ro
+      - ${PHP83_DIR}/www.conf:/usr/local/etc/php-fpm.conf:ro
+      - ${LOG_DIR}/php83:/var/log/php
+      # wwwroot
+      - ${VHOSTS_ROOT}:/wwwroot
+    tmpfs:
+      - /var/run/nginx-cache:rw,noexec,nosuid,size=512m
+    networks:
+      - default
+
+  mysql:
+    image: mysql/mysql-server:8.0.32-1.2.11-server
+    # build:
+    #   context: ./mysql
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      # mysql config
+      - ${MYSQL_DIR}/entrypoint.sh:/entrypoint.sh
+      - ${MYSQL_DIR}/my.conf:/etc/my.cnf:ro
+      - ${MYSQL_DATA_DIR}:/var/lib/mysql/:rw
+      - ${LOG_DIR}/mysql:/var/log/mysql:rw
+    restart: always
+    networks:
+      - default
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_USER: "${MYSQL_ROOT_USER}"
+      TZ: "$TZ"
+
+  # memcached
+#  memcached:
+#    image: memcached:alpine
+#    container_name: memcached
+#    ports:
+#      - "11211:11211"
+#    environment:
+#       MEMCACHED_CACHE_SIZE: "128"
+#    networks:
+#      - default
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 18.0.0.0/24

@@ -1,0 +1,12 @@
+# 自定义规则
+*filter
+:INPUT DROP [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -p icmp -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+-A INPUT -p tcp -m multiport --dports 22,80,443,139,445 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 8081 -j ACCEPT
+COMMIT
+# 结束

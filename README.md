@@ -1,4 +1,4 @@
-# Install with WAF
+# Install
 
 #### Download
 ```

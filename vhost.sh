@@ -394,8 +394,10 @@ function site_backup {
         ls -ghGA $BACKUP_STORAGE_DIR | awk 'BEGIN{OFS="\t"} NR > 1 {print $3, $7}'
     else
         echoRC "备份失败."
-        return $?
     fi
+    # 删除数据库文件
+    rm -rf $save_database_file
+    return $?
 }
 # 恢复站点
 function site_restore {

@@ -343,7 +343,7 @@ function site_delete {
         certbot delete --cert-name $SITE_HOSTNAME -n
     fi
     # 删除站点日志文件
-    rm -rf $NGINX_LOG_DIR/$SITE_HOSTNAME.*
+    rm -rf $LOG_DIR/nginx/$SITE_HOSTNAME.*
     # 重新加载nginx配置
     docker exec nginx nginx -s reload
     # 输出成功
